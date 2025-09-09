@@ -7,7 +7,48 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Braylon McComiskey");
 MODULE_DESCRIPTION("A Hello World kernel module");
 
-static int major_number; //declares major number so it can be globally used in init and exit functions
+
+//********** PLACEHOLDER FUNCTIONS FOR FOPS **********
+
+//reading device
+static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff_t *off) {
+	printk(KERN_INFO "my_driver: Reading from device.\n");
+	return 0;
+}
+
+//writing to device
+static ssize_t device_write(struct file *flip, const char __user *buf, size_t len, loff_t *off) {
+	printk(KERN_INFO "my_driver: Writing to device.\n");
+	return len;
+}
+
+//opening device
+static int device_open(struct inode *inode, struct file *file) {
+	printk(KERN_INFO "my_driver: Device opened.\n");
+	return 0;
+}
+
+//releaseing device
+static int device_release(struct inode *inode, struct file *file) {
+	printk(KERN_INFO "my_driver: Device released.\n");
+	return 0;
+}
+
+
+// ********** GLOBAL VARIABLE DECLARATIONS **********
+
+//File operations struct that points to declared functions above with operations for my device
+static struct file_operations fops = {
+	.read = device_read,
+	.write = device_write,
+	.open = device_open,
+	.release = device_release,
+};
+
+static int major_number;  //declares major number globally
+
+
+// ********** INIT AND EXIT FUNCTIONS **********
 
 //This function is called when the module is loaded. The __init macro tells the kernel this is an init function.
 //This allows the kernel to free memory after it runs.
@@ -21,8 +62,8 @@ static int __init hello(void) {
 	//register_chrdev() parameters:
 	// 1. Major Number: 0 means dynamically allocate one
 	// 2. Name: The name that will appear in /proc/devices
-	// 3. File Opperations: Just a null pointer for now
-	major_number = register_chrdev(0, "my_device", NULL);
+	// 3. File Operations: Tells the kernel what to do for operations with the device
+	major_number = register_chrdev(0, "my_device", &fops);
 
 	//test if the register_chrdev() passed an error (negative number)
 	if (major_number < 0) {

@@ -1,5 +1,5 @@
 #This line tells the kernel build system to build the my_driver.ko file (Kernel Object)
-obj-m += my_drier.o
+obj-m += my_driver.o
 
 # The 'all' target is the default. This command is the standard way to build external modules
 # -C: changes directory to the kernel build directory

@@ -10,14 +10,13 @@ MODULE_DESCRIPTION("A Hello World kernel module");
 //This function is called when the module is loaded. The __init macro tells the kernel this is an init function.
 //This allows the kernel to free memory after it runs.
 static int __init hello(void) {
-	printk(KERN_INFO "Hello World!");
+	printk(KERN_INFO "Hello World!\n");
 	return 0;
 }
 
 //This function is called when the module is unloaded. The __exit macro tells the kernel this is an exit function
-static int __exit goodbye(void) {
-	printk(KERN_INFO "Goodbye World!");
-	return 0;
+static void __exit goodbye(void) {
+	printk(KERN_INFO "Goodbye World!\n");
 }
 
 //These macros register our functions as the entry and exit positions

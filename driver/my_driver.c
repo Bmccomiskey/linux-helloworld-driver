@@ -1,4 +1,4 @@
-#include <linux/init.h>    //Contains the __init and __exit macros
+
 #include <linux/module.h>  //Contains headers for loading modules into the kerel
 #include <linux/kernel.h>  //Contains Kernel services, like printk
 #include <linux/fs.h>      //Contains character device functions
@@ -93,6 +93,7 @@ static int device_release(struct inode *inode, struct file *file) {
 
 //File operations struct that points to declared functions above with operations for my device
 static struct file_operations fops = {
+    .owner = THIS_MODULE,
 	.read = device_read,
 	.write = device_write,
 	.open = device_open,

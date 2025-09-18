@@ -4,6 +4,9 @@
 # Sets to exit if any command fails
 set -e
 
+#clear then recompile to include updates to my_driver.c
+make clean && make
+
 #remove existing devices or modules
 # "|| true" is used to ignore errors with files not existing
 sudo rm dev/clock_device || true
@@ -11,10 +14,15 @@ sudo rmmod my_driver || true
 
 sudo insmod my_driver.ko
 
-MAJOR_NUM = $(cat /proc/devices | grep "clock_device" | awk  '{print $1}')
+sleep 1
+
+MAJOR_NUM=$(cat /proc/devices | grep "clock_device" | awk '{print $1}')
 
 if [ -z "$MAJOR_NUM" ]; then 
 	echo "Error: could not find major number"
+	
+	sudo rmmod my_driver
+
 	exit 1
 fi
 

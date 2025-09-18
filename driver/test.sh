@@ -5,7 +5,8 @@
 set -e
 
 #clear then recompile to include updates to my_driver.c
-make clean && make
+make clean
+bear -- make
 
 #remove existing devices or modules
 # "|| true" is used to ignore errors with files not existing

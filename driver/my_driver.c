@@ -22,7 +22,7 @@ static int major_number;  //declares major number globally
 
 //this function will be called when the timer expires
 static void sound_alarm(struct timer_list *timer) {
-    printk(KERN_ALERT "TIMES UP!!!!");
+    printk(KERN_ALERT "TIMES UP!!!!\n");
 }
 
 
@@ -66,7 +66,7 @@ static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff
 	//this is important because "cat" command runs in user space and can only print out user space data
 	//if it could access kernel space it would corrupt security of the system
 	if (copy_to_user(buf, timestr, timestr_len)) {
-		printk(KERN_ALERT, "Could not copy time to user space");
+		printk(KERN_ALERT, "Could not copy time to user space\n");
 		return -EFAULT;  //bad address error
 	}
 	
@@ -85,26 +85,26 @@ static ssize_t device_write(struct file *flip, const char __user *buf, size_t le
     unsigned long delay_seconds;
     int err;
 
-    printk(KERN_INFO "Copying increment from user space");
+    printk(KERN_INFO "Copying increment from user space\n");
 
     //this will get the data from the user to use for imcrementation of the timer
     if (copy_from_user(user_str, buf, len)) {
-        printk(KERN_ALERT "Could not copy increment from user space");
+        printk(KERN_ALERT "Could not copy increment from user space\n");
         return -EFAULT; //bad address error
     }
     
-    printk(KERN_INFO "Converting user input into unsigned long");
+    printk(KERN_INFO "Converting user input into unsigned long\n");
 
     //converts the user input into unsigned long so it can be used in incrementation
     //kstrtoul returns 1 on error
     err = kstrtoul(user_str, 10, &delay_seconds);
 
     if (err) {
-        printk(KERN_ALERT "Could not convert input to unsigned long");
+        printk(KERN_ALERT "Could not convert input to unsigned long\n");
         return err;
     }
 
-    printk(KERN_INFO "Setting the alarm for %lu sconds from now", delay_seconds);
+    printk(KERN_INFO "Setting the alarm for %lu sconds from now\n", delay_seconds);
     
     //mod_timer increments the timer
     //jiffies + (delay_seconds * HZ) is the conversion from our seconds to an increment the kernel understands
@@ -166,7 +166,7 @@ static int __init hello(void) {
     //sets up the timer to be used by the user later
     timer_setup(&my_timer, sound_alarm, 0);
 
-    printk(KERN_INFO "Registerd Timer");
+    printk(KERN_INFO "Registerd Timer\n");
 
 	return 0;
 }
@@ -174,7 +174,7 @@ static int __init hello(void) {
 //This function is called when the module is unloaded. The __exit macro tells the kernel this is an exit function
 static void __exit goodbye(void) {
     
-    printk(KERN_INFO "Deactivating pending timer");
+    printk(KERN_INFO "Deactivating pending timer\n");
 
     //this removes any pending timer to avoid a kernel crash
     //if module is removed before timer activates it will cause a kernel crash

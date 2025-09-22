@@ -3,7 +3,8 @@
 #include <linux/kernel.h>  //Contains Kernel services, like printk
 #include <linux/fs.h>      //Contains character device functions
 #include <linux/timekeeping.h> //Containts fuctions for interacting with kernel time
-#include <linux/time.h>    //Contains function to convert from UNIX time to datetime
+#include <linux/time.h>    //Contains function to convert from UNIX time to datetime 
+#include <linux/jiffies.h> //COntains jiffies and HZ for incrementing timer
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Braylon McComiskey");
@@ -29,11 +30,6 @@ static void sound_alarm(struct timer_list *timer) {
 
 //Read function (runs when using <)
 //Reads system time, formats to readable string, outputs to user
-//Parameters:
-// @ *flip: 
-// @ *buf: user space buffer
-// @ len: 
-// @ *off: offset
 static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff_t *off) {
 	
 	char timestr[64];
@@ -81,13 +77,42 @@ static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff
 }
 
 //Write function (runs when using >)
-//gets time to increment from user, gets system time from kernel, sets a function to run after increment + system time 
+//gets time to increment from user, gets system time from kernel, sets a function to run after increment + system time
+//when the user writes a "5" it will sound the alarm in 5 seconds 
 static ssize_t device_write(struct file *flip, const char __user *buf, size_t len, loff_t *off) {
-	printk(KERN_INFO "my_driver: Writing to device.\n");
-
     
+    char user_str[32];
+    unsigned long delay_seconds;
+    int err;
 
-	return len;
+    printk(KERN_INFO "Copying increment from user space");
+
+    //this will get the data from the user to use for imcrementation of the timer
+    if (copy_from_user(user_str, buf, len)) {
+        printk(KERN_ALERT "Could not copy increment from user space");
+        return -EFAULT; //bad address error
+    }
+    
+    printk(KERN_INFO "Converting user input into unsigned long");
+
+    //converts the user input into unsigned long so it can be used in incrementation
+    //kstrtoul returns 1 on error
+    err = kstrtoul(user_str, 10, &delay_seconds);
+
+    if (err) {
+        printk(KERN_ALERT "Could not convert input to unsigned long");
+        return err;
+    }
+
+    printk(KERN_INFO "Setting the alarm for %lu sconds from now", delay_seconds);
+    
+    //mod_timer increments the timer
+    //jiffies + (delay_seconds * HZ) is the conversion from our seconds to an increment the kernel understands
+    // - jiffies: the kernels inerntal time tick
+    // - HZ: the amount of jiffies per second (kernel constant)
+    mod_timer(&my_timer, (jiffies + (delay_seconds * HZ));
+
+	return len; //returns the length of what we coppied
 }
 
 //opening device
@@ -148,6 +173,13 @@ static int __init hello(void) {
 
 //This function is called when the module is unloaded. The __exit macro tells the kernel this is an exit function
 static void __exit goodbye(void) {
+    
+    printk(KERN_INFO "Deactivating pending timer");
+
+    //this removes any pending timer to avoid a kernel crash
+    //if module is removed before timer activates it will cause a kernel crash
+    //the address for the callback function would not exist anymore
+    del_timer_sync(&my_timer);
 
 	printk(KERN_INFO "Goodbye Kernel!\n");
 	unregister_chrdev(major_number, "clock_device");

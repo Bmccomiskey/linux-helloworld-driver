@@ -110,7 +110,7 @@ static ssize_t device_write(struct file *flip, const char __user *buf, size_t le
     //jiffies + (delay_seconds * HZ) is the conversion from our seconds to an increment the kernel understands
     // - jiffies: the kernels inerntal time tick
     // - HZ: the amount of jiffies per second (kernel constant)
-    mod_timer(&my_timer, (jiffies + (delay_seconds * HZ));
+    mod_timer(&my_timer, (jiffies + (delay_seconds * HZ)));
 
 	return len; //returns the length of what we coppied
 }

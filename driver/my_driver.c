@@ -10,15 +10,39 @@ MODULE_AUTHOR("Braylon McComiskey");
 MODULE_DESCRIPTION("A Hello World kernel module");
 
 
-//********** PLACEHOLDER FUNCTIONS FOR FOPS **********
+// ********** GLOBAL VARIABLE DECLARATIONS **********
+
+//struct that handles the timer operations from an existing library
+static struct timer_list my_timer;
+
+//File operations struct that points to declared functions above with operations for my device
+static struct file_operations fops = {
+    .owner = THIS_MODULE,
+	.read = device_read,
+	.write = device_write,
+	.open = device_open,
+	.release = device_release,
+};
+
+static int major_number;  //declares major number globally
+
+// ********** HELPER FUNCTIONS  **********
+
+//this function will be called when the timer expires
+static void sound_alarm(struct timer_list *timer) {
+    printk(KERN_ALERT "TIMES UP!!!!");
+}
+
+
+//********** FUNCTIONS FOR FOPS **********
 
 //Read function (runs when using <)
 //Reads system time, formats to readable string, outputs to user
 //Parameters:
-//1. *flip: 
-//2. *buf: user space buffer
-//3. len: 
-//4. *off: offset
+// @ *flip: 
+// @ *buf: user space buffer
+// @ len: 
+// @ *off: offset
 static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff_t *off) {
 	
 	char timestr[64];
@@ -33,10 +57,6 @@ static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff
 	//Read in system time from kernel
 	struct timespec64 timestruct;
 	ktime_get_real_ts64(&timestruct);
-	
-	//Gets length of timestr while setting time_str = to the string with declaration and seconds
-	//this is important to increment the buffer by the length of our string
-	
 	
 	//Converts UNIX time to datetime
 	time64_to_tm(timestruct.tv_sec, 0, &datetime);
@@ -73,6 +93,9 @@ static ssize_t device_read(struct file *flip, char __user *buf, size_t len, loff
 //gets time to increment from user, gets system time from kernel, sets a function to run after increment + system time 
 static ssize_t device_write(struct file *flip, const char __user *buf, size_t len, loff_t *off) {
 	printk(KERN_INFO "my_driver: Writing to device.\n");
+
+    
+
 	return len;
 }
 
@@ -89,20 +112,6 @@ static int device_release(struct inode *inode, struct file *file) {
 }
 
 
-// ********** GLOBAL VARIABLE DECLARATIONS **********
-
-//File operations struct that points to declared functions above with operations for my device
-static struct file_operations fops = {
-    .owner = THIS_MODULE,
-	.read = device_read,
-	.write = device_write,
-	.open = device_open,
-	.release = device_release,
-};
-
-static int major_number;  //declares major number globally
-
-
 // ********** INIT AND EXIT FUNCTIONS **********
 
 //This function is called when the module is loaded. The __init macro tells the kernel this is an init function.
@@ -115,9 +124,9 @@ static int __init hello(void) {
 	//Creates a major number that acts like a telephone number for the device to communicate from device to driver
 	//A character device is special in that it sends information in characters rather than in chunks
 	//register_chrdev() parameters:
-	// 1. Major Number: 0 means dynamically allocate one
-	// 2. Name: The name that will appear in /proc/devices
-	// 3. File Operations: Tells the kernel what to do for operations with the device
+	// @ Major Number: 0 means dynamically allocate one
+	// @ Name: The name that will appear in /proc/devices
+	// @ File Operations: Tells the kernel what to do for operations with the device
 	major_number = register_chrdev(0, "clock_device", &fops);
 
 	//test if the register_chrdev() passed an error (negative number)
@@ -128,6 +137,11 @@ static int __init hello(void) {
 	}
 	
 	printk(KERN_INFO "Registered Correctly with major number %d.\n", major_number);
+    
+    //sets up the timer to be used by the user later
+    timer_setup(&my_timer, timer_callback, 0);
+
+    printl(KERN_INFO "Registerd Timer");
 
 	return 0;
 }

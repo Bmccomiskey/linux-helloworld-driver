@@ -15,15 +15,6 @@ MODULE_DESCRIPTION("A Hello World kernel module");
 //struct that handles the timer operations from an existing library
 static struct timer_list my_timer;
 
-//File operations struct that points to declared functions above with operations for my device
-static struct file_operations fops = {
-    .owner = THIS_MODULE,
-	.read = device_read,
-	.write = device_write,
-	.open = device_open,
-	.release = device_release,
-};
-
 static int major_number;  //declares major number globally
 
 // ********** HELPER FUNCTIONS  **********
@@ -34,7 +25,7 @@ static void sound_alarm(struct timer_list *timer) {
 }
 
 
-//********** FUNCTIONS FOR FOPS **********
+//********** FILE OPERATIONS **********
 
 //Read function (runs when using <)
 //Reads system time, formats to readable string, outputs to user
@@ -111,6 +102,15 @@ static int device_release(struct inode *inode, struct file *file) {
 	return 0;
 }
 
+//File operations struct that points to declared functions above with operations for my device
+static struct file_operations fops = {
+    .owner = THIS_MODULE,
+	.read = device_read,
+	.write = device_write,
+	.open = device_open,
+	.release = device_release,
+};
+
 
 // ********** INIT AND EXIT FUNCTIONS **********
 
@@ -139,9 +139,9 @@ static int __init hello(void) {
 	printk(KERN_INFO "Registered Correctly with major number %d.\n", major_number);
     
     //sets up the timer to be used by the user later
-    timer_setup(&my_timer, timer_callback, 0);
+    timer_setup(&my_timer, sound_alarm, 0);
 
-    printl(KERN_INFO "Registerd Timer");
+    printk(KERN_INFO "Registerd Timer");
 
 	return 0;
 }

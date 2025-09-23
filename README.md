@@ -3,23 +3,22 @@ This is a device driver that interacts with the Linux kernel to display the curr
 
 # Setup
 
-  1.) Clone the repository
-  2.) Run these commands in the driver directory
-      - sudo chmod +x start.sh
-      - sudo chmod +x end.sh
-      - sudo chmod +x tests.sh
-  3.) Run "./start.sh" to start the device
-      - This is now when you can use cat and echo to interact with the device.
-      - To make sure the program is working, run "./tests.sh".
-  4.) Run "./end.sh" to clean the directory and remove the device.
+  - Clone the repository
+  - Run these commands in the driver directory
+    - sudo chmod +x start.sh
+    - sudo chmod +x end.sh
+    - sudo chmod +x tests.sh
+  - Run "./start.sh" to start the device
+    - This is now when you can use cat and echo to interact with the device.
+    - To make sure the program is working, run "./tests.sh".
+  - Run "./end.sh" to clean the directory and remove the device.
       
 
 # How to use
 
-  Display Time: cat /dev/clock_device
+  - Display Time: cat /dev/clock_device
 
-  Set alarm: echo "{number}" > /dev/clock_device
-    - The number will be how many seconds you want the timer to take
+  - Set timer: echo "{timer length in seconds}" > /dev/clock_device
 
 
 # Notes
